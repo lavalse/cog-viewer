@@ -87,7 +87,15 @@
   padding: 0 4px;
 }
 .profile-close:hover { color: #333; }
-#profileCanvas { flex: 1; width: 100%; }
+#profileCanvas {
+  flex: 1;
+  display: block;
+  /* Critical: without these, the canvas's intrinsic size (set via cv.width/height
+     for hi-DPI rendering) overrides the flex slot and overflows the panel. */
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+}
 
 .confirm-card {
   background: #fff;

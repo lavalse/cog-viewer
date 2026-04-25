@@ -4,6 +4,13 @@ import { state } from '../state.js';
 import { map, sources } from './setup.js';
 import { sampleAt, sampleRgbAt } from '../cog/readers.js';
 
+// Cache the last drawn series so a window resize can re-render without resampling.
+let lastSamples = null, lastTotal = 0, lastIsRgb = false;
+
+window.addEventListener('resize', () => {
+  if (lastSamples) drawChart(lastSamples, lastTotal, lastIsRgb);
+});
+
 export function startProfileDraw(onDone) {
   sources.profile.clear();
   const inter = new ol.interaction.Draw({ source: sources.profile, type: 'LineString' });
@@ -55,6 +62,7 @@ function renderProfile(feature) {
 }
 
 function drawChart(samples, total, isRgb) {
+  lastSamples = samples; lastTotal = total; lastIsRgb = isRgb;
   const panel = document.getElementById('profilePanel');
   panel.classList.add('visible');
 
@@ -84,9 +92,12 @@ function drawChart(samples, total, isRgb) {
 
   const cv = document.getElementById('profileCanvas');
   const ctx = cv.getContext('2d');
-  cv.width = cv.offsetWidth * 2; cv.height = cv.offsetHeight * 2; ctx.scale(2, 2);
+  const dpr = Math.max(1, window.devicePixelRatio || 1);
+  cv.width = cv.offsetWidth * dpr;
+  cv.height = cv.offsetHeight * dpr;
+  ctx.scale(dpr, dpr);
   const cw = cv.offsetWidth, ch = cv.offsetHeight;
-  const padL = 40, padR = 12, padT = 10, padB = 22;
+  const padL = 40, padR = 12, padT = 10, padB = 28;
   const plotW = cw - padL - padR, plotH = ch - padT - padB;
   ctx.clearRect(0, 0, cw, ch);
   if (!Number.isFinite(mn) || !Number.isFinite(mx)) {
@@ -109,8 +120,10 @@ function drawChart(samples, total, isRgb) {
     ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padL + plotW, y); ctx.stroke();
   }
   ctx.textAlign = 'center';
-  ctx.fillText('0', padL, padT + plotH + 14);
-  ctx.fillText(lenStr, padL + plotW, padT + plotH + 14);
+  ctx.textBaseline = 'top';
+  ctx.fillText('0', padL, padT + plotH + 6);
+  ctx.fillText(lenStr, padL + plotW, padT + plotH + 6);
+  ctx.textBaseline = 'alphabetic';
 
   if (isRgb) {
     drawSeries(ctx, samples, total, mn, range, padL, padT, plotW, plotH, 0, '#d32f2f'); // R
@@ -142,4 +155,5 @@ function drawSeries(ctx, samples, total, mn, range, padL, padT, plotW, plotH, ch
 export function closeProfile() {
   document.getElementById('profilePanel').classList.remove('visible');
   sources.profile.clear();
+  lastSamples = null;
 }
