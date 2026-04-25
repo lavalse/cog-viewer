@@ -201,6 +201,13 @@ single-file ~850-line HTML; credit to its accompanying README for the war
 stories about overview geotransforms, NoData edge cases, and the
 Float32 + WebGLTile trap (clamps to 0–255, gives you a blank image).
 
+## More docs
+
+- [DESIGN.md](DESIGN.md) — design philosophy (what this tool *is for*,
+  what it deliberately isn't, decision protocol for new features)
+- [ROADMAP.md](ROADMAP.md) — what's next (CORS proxy, catalog, …)
+- [CLAUDE.md](CLAUDE.md) — guidance for AI agents working in this repo
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
