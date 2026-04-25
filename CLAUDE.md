@@ -124,6 +124,19 @@ js/
    positioning bases on `map.getSize()`. Otherwise the tooltip overflows
    the viewport and triggers a page-level scrollbar.
 
+7. **Flex + replaced element + JS-set intrinsic size = overflow.** Canvas,
+   img, video, iframe are *replaced elements* with intrinsic dimensions.
+   In a flex container, `min-size: auto` (the default) means the flex
+   item's minimum size is its intrinsic content size — flex won't shrink
+   it below that. The trap: when you do hi-DPI canvas with
+   `cv.width = cv.offsetWidth * dpr`, the intrinsic size becomes the
+   buffer size (e.g. 330 px), and a 200 px-tall flex slot can no longer
+   contain it — the canvas overflows past the panel boundary, clipping
+   whatever is at the bottom (e.g. axis labels). Always pair JS canvas
+   sizing with `min-width: 0; min-height: 0` in CSS for any canvas (or
+   img/video) inside a flex container. Cost us the profile-chart x-axis
+   cutoff bug.
+
 ## Things deliberately *not* here
 
 If a request would add one of these, push back before implementing:
