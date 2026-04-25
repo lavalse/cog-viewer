@@ -2,7 +2,7 @@
 
 import { state } from '../state.js';
 import { map, sources } from './setup.js';
-import { sampleAt } from '../cog/readers.js';
+import { sampleAt, sampleRgbAt } from '../cog/readers.js';
 
 export function startProfileDraw(onDone) {
   sources.profile.clear();
@@ -35,6 +35,8 @@ function renderProfile(feature) {
   }
   const stride = state.lastOverview ? state.lastOverview.level.resX : 1;
   const N = Math.min(300, Math.max(50, Math.floor(total / Math.max(0.5, stride))));
+  const isRgb = state.renderMode === 'rgb' && state.fetchedBands && state.fetchedBands.r;
+  const sampler = isRgb ? sampleRgbAt : sampleAt;
   const samples = [];
   for (let k = 0; k < N; k++) {
     const t = k / (N - 1);
@@ -47,21 +49,38 @@ function renderProfile(feature) {
     const segT = segLens[si] > 0 ? (targetDist - accum) / segLens[si] : 0;
     const x = cogCoords[si][0] + segT * (cogCoords[si + 1][0] - cogCoords[si][0]);
     const y = cogCoords[si][1] + segT * (cogCoords[si + 1][1] - cogCoords[si][1]);
-    samples.push({ dist: targetDist, value: sampleAt([x, y]) });
+    samples.push({ dist: targetDist, value: sampler([x, y]) });
   }
-  drawChart(samples, total);
+  drawChart(samples, total, isRgb);
 }
 
-function drawChart(samples, total) {
+function drawChart(samples, total, isRgb) {
   const panel = document.getElementById('profilePanel');
   panel.classList.add('visible');
-  const valid = samples.filter((s) => s.value !== null);
+
+  // Find global min/max across whichever channels we have.
   let mn = Infinity, mx = -Infinity;
-  valid.forEach((s) => { if (s.value < mn) mn = s.value; if (s.value > mx) mx = s.value; });
+  for (const s of samples) {
+    const v = s.value;
+    if (v == null) continue;
+    if (Array.isArray(v)) {
+      for (const c of v) {
+        if (c == null || Number.isNaN(c)) continue;
+        if (c < mn) mn = c;
+        if (c > mx) mx = c;
+      }
+    } else if (!Number.isNaN(v)) {
+      if (v < mn) mn = v;
+      if (v > mx) mx = v;
+    }
+  }
+
   const unit = state.mainImage && state.mainImage.getGeoKeys().ProjLinearUnitsGeoKey === 9001 ? 'm' : 'u';
   const lenStr = total > 1000 ? (total / 1000).toFixed(2) + ' km' : total.toFixed(0) + ' ' + unit;
-  document.getElementById('profileMeta').textContent =
-    lenStr + '  ·  ' + (Number.isFinite(mn) ? mn.toFixed(1) : '?') + ' — ' + (Number.isFinite(mx) ? mx.toFixed(1) : '?');
+  const rangeStr = (Number.isFinite(mn) && Number.isFinite(mx))
+    ? `${mn.toFixed(1)} — ${mx.toFixed(1)}` + (isRgb ? ' (R·G·B)' : '')
+    : '?';
+  document.getElementById('profileMeta').textContent = `${lenStr}  ·  ${rangeStr}`;
 
   const cv = document.getElementById('profileCanvas');
   const ctx = cv.getContext('2d');
@@ -72,10 +91,12 @@ function drawChart(samples, total) {
   ctx.clearRect(0, 0, cw, ch);
   if (!Number.isFinite(mn) || !Number.isFinite(mx)) {
     ctx.fillStyle = '#999'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center';
-    ctx.fillText('All points outside fetched region', cw / 2, ch / 2);
+    ctx.fillText('No data along this line (try drawing inside the rendered region)', cw / 2, ch / 2);
     return;
   }
   const range = mx - mn || 1;
+
+  // Axes
   ctx.strokeStyle = '#ddd'; ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + plotH); ctx.lineTo(padL + plotW, padT + plotH);
@@ -90,22 +111,32 @@ function drawChart(samples, total) {
   ctx.textAlign = 'center';
   ctx.fillText('0', padL, padT + plotH + 14);
   ctx.fillText(lenStr, padL + plotW, padT + plotH + 14);
-  ctx.strokeStyle = '#e91e63'; ctx.lineWidth = 1.5; ctx.beginPath();
+
+  if (isRgb) {
+    drawSeries(ctx, samples, total, mn, range, padL, padT, plotW, plotH, 0, '#d32f2f'); // R
+    drawSeries(ctx, samples, total, mn, range, padL, padT, plotW, plotH, 1, '#388e3c'); // G
+    drawSeries(ctx, samples, total, mn, range, padL, padT, plotW, plotH, 2, '#1976d2'); // B
+  } else {
+    drawSeries(ctx, samples, total, mn, range, padL, padT, plotW, plotH, null, '#e91e63');
+  }
+}
+
+function drawSeries(ctx, samples, total, mn, range, padL, padT, plotW, plotH, channel, color) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
   let started = false;
-  for (let i = 0; i < samples.length; i++) {
-    const s = samples[i];
-    if (s.value === null) { started = false; continue; }
+  for (const s of samples) {
+    let v = s.value;
+    if (v == null) { started = false; continue; }
+    if (channel !== null) v = Array.isArray(v) ? v[channel] : null;
+    if (v == null || Number.isNaN(v)) { started = false; continue; }
     const x = padL + (s.dist / total) * plotW;
-    const y = padT + plotH * (1 - (s.value - mn) / range);
+    const y = padT + plotH * (1 - (v - mn) / range);
     if (!started) { ctx.moveTo(x, y); started = true; }
     else ctx.lineTo(x, y);
   }
   ctx.stroke();
-  ctx.fillStyle = 'rgba(233,30,99,0.08)';
-  ctx.lineTo(padL + plotW, padT + plotH);
-  ctx.lineTo(padL, padT + plotH);
-  ctx.closePath();
-  ctx.fill();
 }
 
 export function closeProfile() {
