@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo-256.png" alt="COG Viewer logo" width="180" style="image-rendering: pixelated">
+</p>
+
 # COG Viewer
 
 A small, no-build, browser-based viewer and analyzer for **Cloud Optimized

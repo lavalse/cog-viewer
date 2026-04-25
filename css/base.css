@@ -27,8 +27,15 @@ h2 { font-size: 16px; margin-bottom: 2px; }
 .sidebar-title {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
+}
+.sidebar-title h2 { flex: 1; }
+.brand-logo {
+  width: 32px;
+  height: 26px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  flex-shrink: 0;
 }
 .gh-link {
   display: inline-flex;
