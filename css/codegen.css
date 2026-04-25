@@ -1,0 +1,72 @@
+.codegen-section {
+  margin-top: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 10px;
+}
+.codegen-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.codegen-header h3 {
+  font-size: 12px;
+  font-weight: 600;
+  color: #333;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.codegen-tabs {
+  display: flex;
+  gap: 2px;
+}
+.codegen-tab {
+  background: transparent;
+  border: 1px solid #ddd;
+  color: #555;
+  padding: 4px 10px;
+  font-size: 11px;
+  border-radius: 4px;
+}
+.codegen-tab.active {
+  background: #2196f3;
+  color: #fff;
+  border-color: #2196f3;
+}
+.codegen-output-wrap {
+  position: relative;
+  background: #1e1e1e;
+  border-radius: 4px;
+  padding: 10px;
+  max-height: 240px;
+  overflow: auto;
+}
+#codegenOutput {
+  font-family: 'SFMono-Regular', Menlo, Consolas, monospace;
+  font-size: 11px;
+  color: #e8e8e8;
+  white-space: pre;
+  margin: 0;
+  line-height: 1.45;
+}
+.codegen-copy {
+  position: absolute;
+  top: 6px; right: 6px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #fff;
+  font-size: 10px;
+  padding: 3px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.codegen-copy:hover {
+  background: rgba(255,255,255,0.2);
+}
+.codegen-hint {
+  font-size: 10px;
+  color: #888;
+  margin-top: 6px;
+  font-style: italic;
+}

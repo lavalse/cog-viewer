@@ -1,0 +1,103 @@
+#map { flex: 1; position: relative; }
+
+#mapTooltip {
+  position: absolute;
+  background: rgba(0, 0, 0, .85);
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: monospace;
+  pointer-events: none;
+  z-index: 10;
+  line-height: 1.5;
+  display: none;
+  white-space: nowrap;
+}
+
+#toolbar {
+  position: absolute;
+  top: 12px; left: 12px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .15);
+  padding: 4px;
+  display: none;
+  z-index: 20;
+  gap: 2px;
+}
+#toolbar.visible { display: flex; }
+
+.tool-btn {
+  background: transparent;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: #555;
+  display: flex; align-items: center; gap: 5px;
+  line-height: 1;
+}
+.tool-btn:hover { background: #f0f0f0; }
+.tool-btn.active { background: #2196f3; color: #fff; }
+.tool-btn.active:hover { background: #1976d2; }
+
+.tool-hint {
+  position: absolute;
+  top: 12px; left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, .8);
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  z-index: 20;
+  display: none;
+}
+.tool-hint.visible { display: block; }
+
+#profilePanel {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 200px;
+  background: #fff;
+  border-top: 1px solid #ddd;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, .08);
+  z-index: 15;
+  display: none;
+  flex-direction: column;
+}
+#profilePanel.visible { display: flex; }
+.profile-header {
+  padding: 8px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  flex-shrink: 0;
+}
+.profile-title { font-size: 12px; font-weight: 600; color: #555; }
+.profile-title span { color: #888; font-weight: normal; margin-left: 8px; font-family: monospace; }
+.profile-close {
+  background: none; border: none;
+  font-size: 18px; line-height: 1;
+  color: #888; cursor: pointer;
+  padding: 0 4px;
+}
+.profile-close:hover { color: #333; }
+#profileCanvas { flex: 1; width: 100%; }
+
+.confirm-card {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .18);
+  padding: 12px 14px;
+  font-size: 12px;
+  min-width: 200px;
+}
+.confirm-card .title { font-weight: 600; color: #333; margin-bottom: 2px; }
+.confirm-card .meta { color: #888; font-family: monospace; margin-bottom: 8px; font-size: 11px; }
+.confirm-card .btns { display: flex; gap: 6px; }
+.confirm-card button { flex: 1; padding: 5px 8px; font-size: 11px; }

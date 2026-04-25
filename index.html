@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COG Viewer & Analyzer</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.15.0/proj4.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/geotiff@2.1.3/dist-browser/geotiff.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@10.5.0/ol.css">
+<script src="https://cdn.jsdelivr.net/npm/ol@10.5.0/dist/ol.js"></script>
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/panels.css">
+<link rel="stylesheet" href="css/map.css">
+<link rel="stylesheet" href="css/codegen.css">
+</head>
+<body>
+<div class="sidebar">
+  <div class="sidebar-top">
+    <h2>COG Viewer & Analyzer</h2>
+    <div class="subtitle">On-demand loading — only downloads what you need</div>
+  </div>
+  <div class="sidebar-scroll">
+
+    <div id="statusEl"></div>
+    <div class="net-bar hidden" id="netBar"></div>
+
+    <!-- ===== Step 1 ===== -->
+    <div class="step-card active" id="card1">
+      <div class="step-header">
+        <span class="step-num active" id="n1">1</span>
+        <span class="step-title">Add Data</span>
+      </div>
+      <div class="step-desc">Paste a COG URL or drop a local .tif anywhere.</div>
+      <label>COG File URL</label>
+      <input type="text" id="cogUrl" placeholder="https://... or drop a .tif file">
+      <button class="btn-primary" id="loadHeaderBtn" style="width:100%">Load Header</button>
+      <div class="hidden" id="infoSection" style="margin-top:10px">
+        <dl class="info-grid" id="infoGrid"></dl>
+      </div>
+      <div class="hidden" id="ifdSection" style="margin-top:10px">
+        <button class="ifd-toggle" id="ifdToggle">▶ Inspect (IFDs / tags / GeoKeys)</button>
+        <div id="ifdContent" class="ifd-content"></div>
+      </div>
+    </div>
+
+    <!-- ===== Step 2 ===== -->
+    <div class="step-card locked" id="card2">
+      <div class="step-header">
+        <span class="step-num" id="n2">2</span>
+        <span class="step-title">Select & Fetch</span>
+      </div>
+      <div class="step-desc">Draw a box on the area you want, then fetch the data.</div>
+      <div class="btn-row">
+        <button class="btn-draw" id="drawBtn" style="flex:1">Draw Box</button>
+        <button class="btn-outline" id="fullExtentBtn">Full Extent</button>
+        <button class="btn-outline" id="clearSelBtn">Clear</button>
+      </div>
+      <div class="sel-info" id="selInfo">No region selected</div>
+      <label>Output Resolution</label>
+      <select id="resSel">
+        <option value="128">128 × 128 — fast preview</option>
+        <option value="256" selected>256 × 256 — balanced</option>
+        <option value="512">512 × 512 — detailed</option>
+        <option value="1024">1024 × 1024 — high detail</option>
+      </select>
+
+      <!-- Band / palette controls (filled by bandcontrols.js after data loads) -->
+      <div id="bandControls" class="hidden">
+        <div id="renderModeRow" class="hidden ctrl-row">
+          <label class="ctrl-label">Render</label>
+          <label class="radio"><input type="radio" name="renderMode" value="single"> Single band</label>
+          <label class="radio"><input type="radio" name="renderMode" value="rgb"> RGB compose</label>
+        </div>
+        <div id="bandSingleRow" class="ctrl-row">
+          <label class="ctrl-label">Band</label>
+          <select id="bandSingleSel"></select>
+        </div>
+        <div id="bandRgbRow" class="hidden ctrl-row">
+          <label class="ctrl-label">R · G · B</label>
+          <div class="rgb-pickers">
+            <select id="bandRSel"></select>
+            <select id="bandGSel"></select>
+            <select id="bandBSel"></select>
+          </div>
+        </div>
+        <div id="paletteRow" class="ctrl-row">
+          <label class="ctrl-label">Palette</label>
+          <select id="paletteSel"></select>
+          <span id="paletteSwatch" class="palette-swatch"></span>
+        </div>
+        <div class="ctrl-row">
+          <label class="ctrl-label">Stretch</label>
+          <select id="stretchSel">
+            <option value="auto">auto (min/max)</option>
+            <option value="p2-98">percentile 2-98</option>
+            <option value="manual">manual</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn-fetch" id="fetchBtn" style="width:100%;margin-top:8px" disabled>Fetch & Render</button>
+    </div>
+
+    <!-- ===== Step 3 ===== -->
+    <div class="step-card locked" id="card3">
+      <div class="step-header">
+        <span class="step-num" id="n3">3</span>
+        <span class="step-title">Analyze</span>
+      </div>
+      <div class="step-desc">Run statistics on the fetched data.</div>
+      <button class="btn-analyze" id="analyzeBtn" style="width:100%">Analyze Region</button>
+      <div class="hidden" id="analysisResults" style="margin-top:10px">
+        <div class="stats-grid" id="statsGrid"></div>
+        <canvas id="histogram"></canvas>
+      </div>
+    </div>
+
+    <div class="hidden" id="hoverPanel" style="margin-top:8px">
+      <div class="hover-label">Pixel Value (hover)</div>
+      <div class="pixel-bar" id="pixelInfo">Hover over rendered area</div>
+    </div>
+
+    <!-- ===== Copy as Python ===== -->
+    <div class="codegen-section hidden" id="codegenSection">
+      <div class="codegen-header">
+        <h3>Copy as Python</h3>
+        <div class="codegen-tabs">
+          <button class="codegen-tab active" data-tab="rasterio">rasterio</button>
+          <button class="codegen-tab" data-tab="rioxarray">rioxarray</button>
+        </div>
+      </div>
+      <div class="codegen-output-wrap">
+        <button class="codegen-copy" id="codegenCopy">Copy</button>
+        <pre id="codegenOutput"></pre>
+      </div>
+      <div class="codegen-hint">Paste into a Jupyter cell. Reproduces the same overview level + window the viewer used.</div>
+    </div>
+
+    <div style="margin-top:12px">
+      <button class="btn-outline" id="resetBtn" style="width:100%">Reset All</button>
+    </div>
+  </div>
+</div>
+
+<div id="map">
+  <div id="mapTooltip"></div>
+  <div id="toolbar">
+    <button class="tool-btn" data-tool="info" onclick="setTool('info')" title="Hover to read pixel value">ℹ️ Info</button>
+    <button class="tool-btn" data-tool="profile" onclick="setTool('profile')" title="Draw a line to sample a profile">📈 Profile</button>
+    <button class="tool-btn" data-tool="clip" onclick="setTool('clip')" title="Select a region to download as GeoTIFF">✂️ Clip</button>
+  </div>
+  <div class="tool-hint" id="toolHint"></div>
+  <div id="profilePanel">
+    <div class="profile-header">
+      <div class="profile-title">Profile <span id="profileMeta"></span></div>
+      <button class="profile-close" onclick="closeProfile()" title="Close">×</button>
+    </div>
+    <canvas id="profileCanvas"></canvas>
+  </div>
+</div>
+
+<script type="module" src="js/main.js"></script>
+<script type="module">
+// Inline glue so `onclick="setTool(...)"` etc. on toolbar buttons work without ditching them for addEventListener.
+import { setTool } from './js/map/tools.js';
+import { closeProfile } from './js/map/profile.js';
+window.setTool = setTool;
+window.closeProfile = closeProfile;
+</script>
+</body>
+</html>
