@@ -50,14 +50,37 @@ Then open `http://localhost:5503`.
 
 ### Try it on a real COG
 
-Copernicus DEM 30 m, Mt. Fuji area:
+Sentinel-2 L2A scene over Tokyo, 2026-04-11 (1.6% cloud) — RGB compose path:
 
 ```
-https://copernicus-dem-30m.s3.eu-central-1.amazonaws.com/Copernicus_DSM_COG_10_N35_00_E138_00_DEM/Copernicus_DSM_COG_10_N35_00_E138_00_DEM.tif
+https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/54/S/UE/2026/4/S2C_54SUE_20260411_0_L2A/TCI.tif
 ```
 
-(That URL has CORS enabled and works from the browser. Many public datasets
-on AWS Open Data and Planetary Computer follow the same pattern.)
+Same scene, B08 (NIR) — single-band path with palette + stretch:
+
+```
+https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/54/S/UE/2026/4/S2C_54SUE_20260411_0_L2A/B08.tif
+```
+
+Both URLs are on the AWS Open Data `sentinel-cogs` bucket, which has CORS
+enabled — they work directly from the browser. The TCI file is 347 MB on
+disk; a 256×256 preview downloads ~1–2 MB thanks to overview selection.
+
+> Note: not all public S3 buckets enable CORS — Copernicus DEM, NASA EarthData,
+> and ESA Copernicus DataSpace require either a CORS proxy or login. See
+> [Sources without CORS](#sources-without-cors).
+
+### Sources without CORS
+
+These are accessible from `gdal /vsicurl/` and Python `requests`, but **not**
+from the browser without a proxy:
+
+- AWS Open Data Copernicus DEM 30 m (`copernicus-dem-30m`)
+- Most NASA EarthData datasets
+- Most ESA Copernicus DataSpace datasets
+
+To use them with this viewer, you'd need a small CORS-proxying Cloudflare
+Pages Function in front. That's planned but not built yet.
 
 ## Features
 
