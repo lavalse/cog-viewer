@@ -19,9 +19,17 @@ export function init() {
 }
 
 async function onLoad() {
-  const url = document.getElementById('cogUrl').value.trim();
+  // Strip all whitespace — paths from chat / wrapped emails sometimes pick up
+  // stray spaces or line breaks that URL-encode to %20 and produce 404s.
+  const raw = document.getElementById('cogUrl').value;
+  const url = raw.replace(/\s+/g, '');
   if (!url) { showStatus('Enter a URL', 'err'); return; }
-  showStatus('Loading header...', 'info');
+  if (url !== raw.trim()) {
+    document.getElementById('cogUrl').value = url;
+    showStatus('Stripped whitespace from URL — loading...', 'info');
+  } else {
+    showStatus('Loading header...', 'info');
+  }
   try {
     await loadHeaderFromUrl(url);
   } catch (err) {
