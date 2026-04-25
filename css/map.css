@@ -17,7 +17,7 @@
 
 #toolbar {
   position: absolute;
-  top: 12px; left: 12px;
+  top: 12px; right: 12px;
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, .15);

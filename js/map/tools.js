@@ -72,9 +72,7 @@ export function installInfoHover() {
     let cc;
     try { cc = ol.proj.transform(evt.coordinate, mp, state.cogProj); }
     catch (e) { tip.style.display = 'none'; return; }
-    tip.style.left = (evt.pixel[0] + 14) + 'px';
-    tip.style.top = (evt.pixel[1] + 14) + 'px';
-    tip.style.display = 'block';
+    // Set content first so we can measure its size, then position with edge flip.
     if (state.renderMode === 'rgb') {
       const rgb = sampleRgbAt(cc);
       if (!rgb) {
@@ -93,6 +91,15 @@ export function installInfoHover() {
       document.getElementById('pixelInfo').textContent =
         `${lonlat[0].toFixed(6)}, ${lonlat[1].toFixed(6)} → ` + (v === null ? 'NoData' : v.toFixed(2));
     }
+    tip.style.display = 'block';
+    const ms = map.getSize() || [0, 0];
+    const tw = tip.offsetWidth, th = tip.offsetHeight, PAD = 14;
+    let x = evt.pixel[0] + PAD;
+    let y = evt.pixel[1] + PAD;
+    if (x + tw > ms[0]) x = evt.pixel[0] - tw - PAD;
+    if (y + th > ms[1]) y = evt.pixel[1] - th - PAD;
+    tip.style.left = Math.max(0, x) + 'px';
+    tip.style.top = Math.max(0, y) + 'px';
   });
   map.getViewport().addEventListener('mouseleave', () => {
     document.getElementById('mapTooltip').style.display = 'none';
