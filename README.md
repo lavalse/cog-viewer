@@ -4,7 +4,7 @@
 
 # COG Viewer
 
-**Live:** [cog-viewer.pages.dev](https://cog-viewer.pages.dev)
+**Live:** [cog-viewer.surreal.tools](https://cog-viewer.surreal.tools)
 
 A small, no-build, browser-based viewer and analyzer for **Cloud Optimized
 GeoTIFFs**. Drop a URL or a local `.tif` in, draw a region, see what's there —
