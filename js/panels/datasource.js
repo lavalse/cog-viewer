@@ -9,6 +9,13 @@ export function init() {
   document.getElementById('cogUrl').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') onLoad();
   });
+  // Sample chips: fill the URL field and trigger Load Header.
+  document.querySelectorAll('.sample-chip').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.getElementById('cogUrl').value = btn.dataset.url;
+      onLoad();
+    });
+  });
   bus.on('header-loaded', renderInfo);
   bus.on('header-loaded', () => {
     fitToMainBbox();

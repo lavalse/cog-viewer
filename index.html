@@ -47,6 +47,11 @@
       <label>COG File URL</label>
       <input type="text" id="cogUrl" placeholder="https://... or drop a .tif file">
       <button class="btn-primary" id="loadHeaderBtn" style="width:100%">Load Header</button>
+      <div class="samples-row">
+        <span class="samples-label">or try:</span>
+        <button class="sample-chip" data-url="https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/54/S/UE/2026/4/S2C_54SUE_20260411_0_L2A/TCI.tif">Sentinel-2 RGB (Tokyo)</button>
+        <button class="sample-chip" data-url="https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/54/S/UE/2026/4/S2C_54SUE_20260411_0_L2A/B08.tif">Sentinel-2 NIR (Tokyo)</button>
+      </div>
       <div class="hidden" id="infoSection" style="margin-top:10px">
         <dl class="info-grid" id="infoGrid"></dl>
       </div>

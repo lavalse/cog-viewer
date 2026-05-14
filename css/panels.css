@@ -159,3 +159,35 @@
 }
 .kv-list dt { color: #888; }
 .kv-list dd { color: #333; word-break: break-word; }
+
+/* Sample one-click chips below the URL field. Help users with no URL of
+   their own get started. Hidden after Step 1 is done — they're no longer
+   relevant once a dataset is loaded. */
+.samples-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-top: 8px;
+}
+.samples-label {
+  font-size: 11px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.sample-chip {
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  color: #444;
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+.sample-chip:hover {
+  background: #e3f2fd;
+  border-color: #2196f3;
+  color: #1565c0;
+}
+.step-card.done .samples-row { display: none; }
